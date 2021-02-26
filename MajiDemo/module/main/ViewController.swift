@@ -21,6 +21,9 @@ class ViewController: UIViewController {
         return tv
     }()
     var timer:Timer?
+    var semap:DispatchSemaphore = DispatchSemaphore(value: 1)
+    var concurrentQueue = DispatchQueue.init(label: "concurrent",attributes: .concurrent)
+    
     deinit {
         self.timer?.invalidate()
         self.timer = nil
@@ -61,15 +64,20 @@ class ViewController: UIViewController {
     }
 
     @objc func request(){
-        mainRequest { (model, error) in
-            if let err = error {
-                print("err = ",err)
-                return
-            }
-            if let m = model{
-                m.request_time = self.df.string(from: Date())
-                RealmManager.addModel(model: m)
-                self.tv.text = m.description
+        self.concurrentQueue.async {
+            self.semap.wait()
+            mainRequest { (model, error) in
+                if let err = error {
+                    print("err = ",err)
+                    self.semap.signal()
+                    return
+                }
+                if let m = model{
+                    m.request_time = self.df.string(from: Date())
+                    RealmManager.addModel(model: m)
+                    self.tv.text = m.description
+                }
+                self.semap.signal()
             }
         }
     }
