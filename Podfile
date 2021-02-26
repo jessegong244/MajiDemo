@@ -6,7 +6,6 @@ target 'MajiDemo' do
   use_frameworks!
   
   pod 'YYModel'
-  pod 'Alamofire'
   pod 'Moya'
   pod 'SnapKit'
   pod 'SVProgressHUD'
